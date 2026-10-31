@@ -437,7 +437,10 @@ if (fs.existsSync(dist)) {
   app.get(/^\/(?!api).*/, (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 }
 
-const PORT = Number(process.env.PORT || 4000);
+// Each Mac account gets its own port (first account 4000, next 4001 …) so two
+// accounts can run Mapping Space at the same time.
+const uidPort = () => { const u = process.getuid?.() ?? 501; return 4000 + (u >= 501 ? u - 501 : 0) % 100; };
+const PORT = Number(process.env.PORT || uidPort());
 app.listen(PORT, '127.0.0.1', () => {
   const url = `http://localhost:${PORT}/${TOKEN ? `?t=${TOKEN}` : ''}`;
   console.log(`Mapping Space on ${url}${process.env.DEMO_ONLY ? ' (demo only)' : ''}`);
