@@ -1,0 +1,17 @@
+{
+  "name": "mapping-space",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Visual disk-space mapper for macOS disk and Google Drive, with delete.",
+  "scripts": {
+    "setup": "npm --prefix server ci && npm --prefix client ci",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "demo": "npm --prefix server run demo",
+    "dev": "node scripts/dev.mjs",
+    "test": "npm --prefix server test",
+    "measure": "sudo \"$npm_node_execpath\" scripts/measure-admin.mjs",
+    "make-app": "bash scripts/make-app.sh pkg",
+    "make-dmg": "bash scripts/make-app.sh dmg"
+  }
+}

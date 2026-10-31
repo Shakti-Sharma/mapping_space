@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "deepseek/deepseek-chat",
+  "instructions": ["AGENTS.md"],
+  "agent": {
+    "build": { "mode": "primary", "model": "deepseek/deepseek-chat" },
+    "plan": { "mode": "primary", "model": "deepseek/deepseek-reasoner" }
+  },
+  "watcher": { "ignore": ["node_modules/**", "client/dist/**", "server/.data/**"] }
+}
