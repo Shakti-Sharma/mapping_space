@@ -441,13 +441,24 @@ if (fs.existsSync(dist)) {
 // accounts can run Mapping Space at the same time.
 const uidPort = () => { const u = process.getuid?.() ?? 501; return 4000 + (u >= 501 ? u - 501 : 0) % 100; };
 const PORT = Number(process.env.PORT || uidPort());
-app.listen(PORT, '127.0.0.1', () => {
-  const url = `http://localhost:${PORT}/${TOKEN ? `?t=${TOKEN}` : ''}`;
-  console.log(`Mapping Space on ${url}${process.env.DEMO_ONLY ? ' (demo only)' : ''}`);
-  if (process.env.MS_URL_FILE) fs.writeFileSync(process.env.MS_URL_FILE, url, { mode: 0o600 });
-  // `npm start` on a Mac opens the browser with the session key for you.
-  if (!process.env.MS_APP && !process.env.MS_DEV && !process.env.MS_NO_OPEN && process.platform === 'darwin') execFile('/usr/bin/open', [url], () => {});
-}).on('error', (e) => { console.error(e.code === 'EADDRINUSE' ? `Port ${PORT} is already in use (is Mapping Space already running?)` : e.message); process.exit(1); });
+// If the port is taken (e.g. another Mac account is running Mapping Space), use the next free one.
+function listen(port, triesLeft = 20) {
+  const server = app.listen(port, '127.0.0.1', () => {
+    process.env.PORT = String(port); // Google sign-in redirect uses the real port
+    const url = `http://localhost:${port}/${TOKEN ? `?t=${TOKEN}` : ''}`;
+    if (port !== PORT) console.log(`Port ${PORT} was busy, using ${port} instead.`);
+    console.log(`Mapping Space on ${url}${process.env.DEMO_ONLY ? ' (demo only)' : ''}`);
+    if (process.env.MS_URL_FILE) fs.writeFileSync(process.env.MS_URL_FILE, url, { mode: 0o600 });
+    // `npm start` on a Mac opens the browser with the session key for you.
+    if (!process.env.MS_APP && !process.env.MS_DEV && !process.env.MS_NO_OPEN && process.platform === 'darwin') execFile('/usr/bin/open', [url], () => {});
+  });
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE' && triesLeft > 0) return listen(port + 1, triesLeft - 1);
+    console.error(e.code === 'EADDRINUSE' ? `Ports ${PORT}–${port} are all in use.` : e.message);
+    process.exit(1);
+  });
+}
+listen(PORT);
 
 function loadEnv(file) {
   if (!fs.existsSync(file)) return;
