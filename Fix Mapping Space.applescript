@@ -60,11 +60,15 @@ on error
 	return
 end try
 
--- Start it (stops an older copy of this account first) and open the browser.
-do shell script prefix & "pkill -u $(id -u) -f 'mapping_space/server/src/index.js' 2>/dev/null; sleep 1; cd " & quoted form of projectDir & ¬
-	" && nohup npm start >> " & quoted form of logFile & " 2>&1 &"
+-- Start it inside the Terminal app: macOS applies Full Disk Access to the program that
+-- starts the server, and Terminal is the one you gave access to (Script Editor isn't).
+do shell script "pkill -u $(id -u) -f 'mapping_space/server/src/index.js' 2>/dev/null; true"
+tell application "Terminal"
+	activate
+	do script "cd " & quoted form of projectDir & " && npm start"
+end tell
 
-display dialog "Done! Mapping Space is starting and opens in your browser in a few seconds." & return & return & ¬
-	"Next time, start it with:  cd ~/ai/mapping_space && npm start" & return & ¬
-	"To see Desktop/Documents/app folders: System Settings → Privacy & Security → Full Disk Access → turn on Terminal." ¬
+display dialog "Done! Mapping Space is starting in a Terminal window and opens in your browser in a few seconds." & return & return & ¬
+	"Keep that Terminal window open while you use it (close it to stop the app)." & return & ¬
+	"Next time, start it in Terminal with:  cd ~/ai/mapping_space && npm start" ¬
 	with title "Mapping Space" buttons {"OK"} default button 1 with icon note
